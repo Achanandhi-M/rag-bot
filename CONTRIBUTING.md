@@ -4,14 +4,6 @@ Thank you for your interest in contributing to the **Keploy Rag Chatbot**! 🙌 
 
 If you're not sure where to start, ask us in our [Slack channel](https://join.slack.com/t/keploy/shared_invite/zt-357qqm9b5-PbZRVu3Yt2rJIa6ofrwWNg).
 
----
-
-## Code of Conduct
-
-We expect all contributors to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please make sure to be respectful, kind, and professional when interacting with other members of the community.
-
----
-
 ## Prerequisites for Contributors
 
 Before contributing, please ensure you have the following:
@@ -67,21 +59,18 @@ We welcome contributions from everyone! Follow the general contribution flow and
 
    ```bash
    git commit -s -m "Your commit message"
-````
+   ````
 
-This adds a line to your commit message:
+   This adds a line to your commit message:
 
-```
-Signed-off-by: Your Name <youremail@example.com>
-```
+  ```bash
+   Signed-off-by: Your Name <youremail@example.com>
+   ```
 
-If you forget to sign off, you can amend your commit to add the sign-off:
-
-```bash
-git commit --amend --signoff
-```
-
----
+   If you forget to sign off, you can amend your commit to add the sign-off:
+   ```bash
+    git commit --amend --signoff
+    ```
 
 ## Opening Issues
 

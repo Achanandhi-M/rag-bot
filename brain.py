@@ -39,6 +39,7 @@ def text_to_docs(text: List[str], filename: str) -> List[Document]:
                     "start_line": start_line,
                     "end_line": end_line
                 }
+                
             )
             doc_chunks.append(doc)
     return doc_chunks
@@ -52,7 +53,7 @@ def get_index_for_mdx(mdx_files, mdx_names):
         print("Index already exists.")
         return FAISS.load_local(
             folder_path ="document_index", 
-            embeddings =AzureOpenAIEmbeddings(model="keploy-docs-embedding"), 
+            embeddings =AzureOpenAIEmbeddings(model="text-embedding-3-large"), 
             allow_dangerous_deserialization =True
         )
 
@@ -67,7 +68,7 @@ def get_index_for_mdx(mdx_files, mdx_names):
     embeddings = AzureOpenAIEmbeddings(
         azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
         openai_api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-        model ="keploy-docs-embedding",
+        model ="text-embedding-3-large",
         chunk_size=1,  # You can adjust this value as needed
     )
     # print("FAISS index:", embeddings)

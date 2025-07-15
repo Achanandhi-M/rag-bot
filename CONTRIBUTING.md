@@ -63,15 +63,15 @@ We welcome contributions from everyone! Follow the general contribution flow and
 
    This adds a line to your commit message:
 
-  ```bash
+    ```bash
    Signed-off-by: Your Name <youremail@example.com>
    ```
 
    If you forget to sign off, you can amend your commit to add the sign-off:
-   ```bash
+    ```bash
     git commit --amend --signoff
     ```
-
+---
 ## Opening Issues
 
 Before submitting a pull request, **please check if the issue is already reported**. If not, feel free to open a new issue to discuss the bug or feature you want to address. Here's what to include in your issue:

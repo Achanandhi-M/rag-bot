@@ -34,7 +34,7 @@ load_dotenv()
 uri = os.getenv("MONGO_URI")
 mongo_client = AsyncIOMotorClient(uri)
 db = mongo_client["rag-bot"]  # Database name
-collection = db["rag-bot"] # Collection name
+collection = db["rag-bot"] # Collection
 
 # Verify if the necessary environment variables are set
 required_env_vars = ["AZURE_OPENAI_ENDPOINT", "OPENAI_API_VERSION", "AZURE_OPENAI_API_KEY"]

@@ -31,7 +31,7 @@ load_dotenv()
 
 # MongoDB setup
 
-uri = os.getenv("uri")
+uri = os.getenv("MONGO_URI")
 mongo_client = AsyncIOMotorClient(uri)
 db = mongo_client["rag-bot"]  # Database name
 collection = db["rag-bot"] # Collection name

@@ -136,5 +136,6 @@ keploy-chat-api/
 * **MDX File Parsing Errors**: Make sure the MDX files are correctly formatted and placed in the `docs/` folder.
 
 ## How to Contribute?
-
+=======
+## Contributing
 If you'd like to contribute to this project, please fork the repository checkout our contribuion guide and submit a pull request. We welcome all contributions!

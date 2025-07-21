@@ -1,4 +1,5 @@
 import sys
+import uuid
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,17 +10,31 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import SystemMessage, HumanMessage
 from langchain.prompts import PromptTemplate
+from typing import Optional
 import openai
 import uvicorn
+import traceback
 import logging
+from motor.motor_asyncio import AsyncIOMotorClient
+import asyncio
+import datetime
 
 # Configure logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
+
 logger.info("Loading environment variables...")
 load_dotenv()
+
+# MongoDB setup
+
+uri = os.getenv("uri")
+mongo_client = AsyncIOMotorClient(uri)
+db = mongo_client["rag-bot"]  # Database name
+collection = db["rag-bot"] # Collection name
 
 # Verify if the necessary environment variables are set
 required_env_vars = ["AZURE_OPENAI_ENDPOINT", "OPENAI_API_VERSION", "AZURE_OPENAI_API_KEY"]
@@ -27,6 +42,22 @@ missing_vars = [var for var in required_env_vars if os.getenv(var) is None]
 if missing_vars:
     logger.error(f"Missing environment variables: {', '.join(missing_vars)}")
     sys.exit(1)
+
+# Function to log queries to MongoDB asynchronously
+async def log_query_mongo(session_id: str, question: str, answer: str = "", sources: list = []):
+    log_entry = {
+        "session_id": session_id,
+        "timestamp": datetime.datetime.now().isoformat(),
+        "question": question,
+        "answer": answer,
+        "sources": sources
+    }
+    try:
+        result = await collection.insert_one(log_entry)  # Insert the data into MongoDB
+        logger.info(f"Successfully inserted query log into MongoDB with session_id: {session_id}, inserted_id: {result.inserted_id}")
+        
+    except Exception as e:
+        logger.error(f"⚠️ Failed to write to MongoDB: {e}")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -107,7 +138,8 @@ if mdx_file_paths:
         )
     llm = AzureChatOpenAI(
         azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-        azure_deployment="gpt-4o-global-standard",
+        azure_deployment="gpt-4.1",
+        model="gpt-4.1",
         openai_api_version=os.getenv("OPENAI_API_VERSION"),
         openai_api_type="azure",
         temperature=0.7,
@@ -128,15 +160,20 @@ else:
 # Define the Question model for the API request
 class Question(BaseModel):
     question: str
+    session_id: Optional[str] = None 
 
 # API endpoint to handle chat queries
 @app.post('/chat')
-def chat(question: Question):
+async def chat(question: Question):
     logger.info("Received chat request")
+    
     if not question.question:
         logger.warning("No question provided")
         raise HTTPException(status_code=400, detail="No question provided")
     
+    # `session_id` will come from the frontend, if not provided, generate a new one
+    session_id = question.session_id or str(uuid.uuid4())  # If not sent, generate a new session ID
+
     try:
         # Perform similarity search on vector database
         search_results = vectordb.similarity_search(question.question, k=3)
@@ -145,21 +182,36 @@ def chat(question: Question):
         # Get response from conversation chain
         response = conversation_chain({"question": question.question})
 
-        # Log the response for debugging
-        logger.info(f"Response from conversation chain: {response}")
+        # Check if the response is irrelevant (e.g., not related to Keploy or generic response)
+        answer = response['answer']
+        if "I am not sure about that" in answer:
+            result = {
+                "answer": "I am not sure about that."
+            }
+        else:
+            # Prepare the result response with sources if it's a valid answer
+            result = {
+                "answer": response['answer'],
+                "sources": [doc.metadata.get('source', 'Unknown') for doc in response.get('source_documents', [])]
+            }
 
-        # Prepare the result response
-        result = {
-            "answer": response['answer'],
-            "sources": [doc.metadata.get('source', 'Unknown') for doc in response.get('source_documents', [])]
-        }
+        # Log the response for debugging (log the final result, including sources or not)
+        logger.info(f"Response from conversation chain: {result}")
+        
+        # Log the data asynchronously to MongoDB
+        await log_query_mongo(session_id, question.question, result['answer'], result.get('sources', []))
+        
         return result
 
     except Exception as e:
         logger.error(f"Error during chat processing: {str(e)}")
+        logger.error(f"Error during chat processing: {str(e)}", exc_info=True)
+        logger.error(f"Full error traceback: {traceback.format_exc()}") 
         raise HTTPException(status_code=500, detail="An error occurred during chat processing")
 
+
 # Main entry point to start the FastAPI server
+
 if __name__ == '__main__':
     logger.info("Starting FastAPI app...")
     uvicorn.run(app, host="0.0.0.0", port=8000)

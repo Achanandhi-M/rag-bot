@@ -4,17 +4,6 @@ Thank you for your interest in contributing to the **Keploy Rag Chatbot**! 🙌 
 
 If you're not sure where to start, ask us in our [Slack channel](https://join.slack.com/t/keploy/shared_invite/zt-357qqm9b5-PbZRVu3Yt2rJIa6ofrwWNg).
 
-<<<<<<< HEAD
-=======
----
-
-## Code of Conduct
-
-We expect all contributors to adhere to our [Code of Conduct](CODE_OF_CONDUCT.md). Please make sure to be respectful, kind, and professional when interacting with other members of the community.
-
----
-
->>>>>>> 601a19b (fix: add new version of RAG bot)
 ## Prerequisites for Contributors
 
 Before contributing, please ensure you have the following:
